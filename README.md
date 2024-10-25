@@ -3,7 +3,7 @@
 
 ## Team Members
 
-- Student 1
-- Student 2
-- Student 3
-- Student 4
+- Yash Pachori
+- Raquel Lutges
+- Addhyan Kohli
+- Kayla Young
