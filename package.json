@@ -2,16 +2,27 @@
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/node": "^22.7.9",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
+    "nodemon": "^3.1.7",
+    "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3"
   },
   "dependencies": {
+    "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.5",
-    "express": "^5.0.1"
+    "ejs": "^3.1.10",
+    "express": "^5.0.1",
+    "http-errors": "^2.0.0",
+    "morgan": "^1.10.0"
   },
   "scripts": {
-    "start": "ts-node src/server/index.ts"
+    "prepare": "husky",
+    "start": "ts-node src/server/index.ts",
+    "start:dev": "nodemon --exec ts-node src/server/index.ts"
+  },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
   }
 }
-
-
