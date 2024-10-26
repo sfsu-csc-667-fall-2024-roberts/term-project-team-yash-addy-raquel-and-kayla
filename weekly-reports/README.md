@@ -1,6 +1,7 @@
 Weekly report materials, when required, will be submitted in sub-directories of this folder.
 
 -Week 2:
+
 Link to github repository: https://github.com/sfsu-csc-667-fall-2024-roberts/term-project-team-yash-addy-raquel-and-kayla.git
 
 Link to github project board: https://github.com/orgs/sfsu-csc-667-fall-2024-roberts/projects/19
