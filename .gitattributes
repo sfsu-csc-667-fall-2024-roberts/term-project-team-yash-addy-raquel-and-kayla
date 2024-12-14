@@ -1,0 +1,16 @@
+# Enforce consistent line endings
+* text=auto
+
+# Specific file types to always use LF
+*.js   text eol=lf
+*.ts   text eol=lf
+*.json text eol=lf
+*.html text eol=lf
+*.css  text eol=lf
+*.md   text eol=lf
+*.yml  text eol=lf
+
+# Binary files - no conversion
+*.png binary
+*.jpg binary
+*.gif binary
