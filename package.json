@@ -12,7 +12,7 @@
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10",
     "livereload": "^0.9.3",
-    "nodemon": "^3.1.7",
+    "nodemon": "^3.1.9",
     "prettier": "^3.3.3",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
@@ -33,7 +33,7 @@
     "prepare": "husky",
     "start": "ts-node src/server/index.ts",
     "test": "echo 'No tests to run'",
-    "start:dev": "concurrently --names server,frontend -c blue,green\"npm run server:dev\" \"npm run build:dev\"",
+    "start:dev": "concurrently --names server,frontend -c blue,green \"npm run server:dev\" \"npm run build:dev\"",
     "server:dev": "nodemon --exec ts-node src/server/index.ts --ext js,css,ejs --ignore src/public/js",
     "build:dev": "webpack build --mode development --watch"
   },

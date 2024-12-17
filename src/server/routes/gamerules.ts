@@ -1,6 +1,6 @@
 import express from "express";
 const router = express.Router();
 router.get("/", (_request, response) => {
-  response.render("root", { title: "Root View" });
+  response.render("gamerules", { title: "Rules" });
 });
 export default router;

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sequence Game Rules</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <!-- Include Navbar -->
+    <%- include('partials/menu') %>
+
+    <header>
+        <h1>Sequence Game Rules</h1>
+    </header>
+
+    <main>
+        <section>
+            <h2>Objective</h2>
+            <p>
+                The goal of Sequence is to form a sequence of five chips in a row, either horizontally, vertically, or diagonally.
+                The first player (or team) to form two sequences of five in a row wins the game.
+            </p>
+        </section>
+
+        <section>
+            <h2>Setup</h2>
+            <p>- Sequence is played with two decks of standard playing cards.</p>
+            <p>- Each player or team gets a set of colored chips (one color per player/team).</p>
+            <p>- The game board consists of a 10x10 grid of cards.</p>
+            <p>- Each card in the grid represents a card from a standard deck.</p>
+        </section>
+
+        <section>
+            <h2>Game Play</h2>
+            <p>- Players take turns placing their chips on the corresponding card on the board.</p>
+            <p>- A player must have a matching card in their hand to place a chip on the board.</p>
+            <p>- The card is placed by selecting an open space on the board where the card appears.</p>
+            <p>- A player cannot place a chip on a space already occupied by another player's chip.</p>
+        </section>
+
+        <section>
+            <h2>Special Cards</h2>
+            <ul>
+                <li><strong>Jacks:</strong> Jacks are wild cards in the game.</li>
+                <li><strong>Two-Eyed Jacks:</strong> These can be used as any card to help form a sequence.</li>
+                <li><strong>One-Eyed Jacks:</strong> These can be used to remove an opponent's chip from the board.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Winning the Game</h2>
+            <p>
+                A player or team wins the game by being the first to form two sequences of five in a row. 
+                A sequence can be horizontal, vertical, or diagonal. The first team to achieve this is declared the winner.
+            </p>
+        </section>
+
+        <a href="/">
+            <button>Home</button>
+        </a>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Sequence Game</p>
+    </footer>
+    <script src="/js/main.js"></script> <!-- Webpack output file -->
+</body>
+</html>
