@@ -8,13 +8,13 @@ const bindSession = async (socket: Socket) => {
   const { request } = socket;
 
   const {
-    user: { id: userId } = {},
+    user = { id: undefined },
     roomId,
     // @ts-expect-error TODO figure out the typing for session on request
   } = request.session;
 
   // TODO there's a bug here; if the user has created a game, the game id is not yet parsed from the url parameters
-  socket.join(`user-${userId}`);
+  socket.join(`user-${user.id}`);
   socket.join(`chat-${roomId}`);
   socket.join(`game-${roomId}`);
 

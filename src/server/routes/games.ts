@@ -1,88 +1,82 @@
-import express from "express";
-import { Games } from "../db";
-import {
-  broadcastGameUpdate,
-  canPlayerDraw,
-  isPlayersTurn,
-} from "./game-middleware";
+import { Router, Request, Response, NextFunction } from 'express';
+import { check, validationResult } from 'express-validator';
+import { GameModel } from '../models/game';
+import { authenticate } from '../middleware/auth';
 
-const router = express.Router();
+const router = Router();
 
-router.post("/create", async (request, response) => {
-  // TODO in client code, disconnect socket prior to submitting creation form
-  // @ts-expect-error TODO: Define the session type for the user object
-  const { id: user_id } = request.session.user;
+// Validation middleware
+const gameValidation = [
+  check('position').isObject().withMessage('Position must be an object'),
+  check('position.x').isInt({ min: 0, max: 9 }).withMessage('X position must be between 0 and 9'),
+  check('position.y').isInt({ min: 0, max: 9 }).withMessage('Y position must be between 0 and 9'),
+  check('cardId').isString().notEmpty().withMessage('Card ID is required')
+];
 
-  const game = await Games.create(user_id!);
-
-  request.app.get("io").emit("game-created", game);
-
-  response.redirect(`/games/${game.id}`);
+// Create a new game
+router.post('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const game = await GameModel.create(req.user!.id);
+    res.status(201).json(game);
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post(
-  "/join/:gameId",
-  async (request, response, next) => {
-    const gameId = parseInt(request.params.gameId, 10);
-    // @ts-expect-error TODO: Define the session type for the user object
-    const { id: userId } = request.session.user;
+// Join a game
+router.post('/:id/join', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const gameState = await GameModel.join(req.params.id, req.user!.id);
+    res.json(gameState);
+  } catch (err) {
+    next(err);
+  }
+});
 
-    const playerCount = await Games.getPlayerCount(gameId);
-
-    if (playerCount === 2) {
-      response.redirect("/lobby");
+// Start a game
+router.post('/:id/start', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const gameState = await GameModel.start(req.params.id);
+    res.json(gameState);
+  } catch (err) {
+    next(err);
+  }
+});
+// Make a move
+router.post('/:id/play', authenticate, gameValidation, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
       return;
     }
 
-    await Games.join(gameId, userId);
-
-    next();
-  },
-  broadcastGameUpdate,
-  (request, response) => {
-    const gameId = parseInt(request.params.gameId, 10);
-
-    response.redirect(`/games/${gameId}`);
-  },
-);
-
-router.get("/:gameId", async (request, response) => {
-  const { gameId } = request.params;
-  // @ts-expect-error TODO: Define the session type for the user object
-  const { id: userId } = request.session.user;
-
-  const game = await Games.get(parseInt(gameId, 10), userId);
-
-  response.render("games/game", {
-    title: `Game ${gameId}`,
-    gameId,
-    game,
-    userId,
-  });
+    const { position, cardId } = req.body;
+    const gameState = await GameModel.makeMove(req.params.id, req.user!.id, cardId, position);
+    res.json(gameState);
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post(
-  "/:gameId/draw",
-  isPlayersTurn,
-  canPlayerDraw,
-  async (request, _response, next) => {
-    const gameId = parseInt(request.params.gameId, 10);
-    // @ts-expect-error TODO: Define the session type for the user object
-    const { id: userId } = request.session.user;
+// Get game state
+router.get('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const gameState = await GameModel.getState(req.params.id);
+    res.json(gameState);
+  } catch (err) {
+    next(err);
+  }
+});
 
-    await Games.drawCard(gameId, userId);
-    await Games.updatePlayerDrawTurn(gameId, userId);
-
-    next();
-  },
-  broadcastGameUpdate,
-  (_request, response) => {
-    response.sendStatus(200);
-  },
-);
-
-router.get("/:gameId/update", broadcastGameUpdate, (_request, response) => {
-  response.sendStatus(200);
+// List available games
+router.get('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const games = await GameModel.listGames();
+    res.json(games);
+  } catch (err) {
+    next(err);
+  }
 });
 
 export default router;
