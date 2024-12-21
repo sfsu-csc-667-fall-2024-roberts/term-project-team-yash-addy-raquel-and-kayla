@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sequence Game</title>
+    <style>
+        body {
+            font-family: system-ui;
+            margin: 0;
+            padding: 2rem;
+            background: #f1f5f9;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .debug {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sequence Game</h1>
+        <div id="game"></div>
+        <div id="debug" class="debug">Game State: Initializing...</div>
+    </div>
+    <div id="player-hand"></div>
+    <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
