@@ -179,7 +179,7 @@ export class GameModel {
     await db.none(
         `
     UPDATE games
-    SET board_state = $1
+    SET board_state = $1git commit --no-verify -m
     WHERE id = $2
     `,
         [game.board_state, gameId]

@@ -1,41 +1,54 @@
 <!doctype html>
 <html lang="en">
-  <%- include ('../partials/head') %>
-  <body class="text-[12px]">
-    <div class="container mx-auto">
-      <%- include('../partials/menu') %>
+<%- include ('../partials/head') %>
+<body class="text-[12px]">
+<div class="container mx-auto">
+  <%- include('../partials/menu') %>
 
-      <div class="flex flex-row">
-        <section class="basis-4/6 mr-[20px]">
-          <div
-            id="opponent-area"
-            class="w-[100%] flex flex-row justify-around min-h-[100px]"
-          ></div>
-          <div id="playing-table">
-            <div class="w-[60%] flex flex-row justify-between mx-auto">
-              <div
-                class="card back"
-                id="draw-pile"
-                data-game-id="<%= gameId %>"
-              ></div>
-
-              <div class="card blank" id="play-pile-n"></div>
-              <div class="card blank" id="play-pile-w"></div>
-              <div class="card blank" id="play-pile-e"></div>
-              <div class="card blank" id="play-pile-s"></div>
+  <div class="flex flex-row">
+    <section class="basis-4/6 mr-[20px]">
+      <div id="opponent-area" class="w-[100%] flex flex-row justify-around min-h-[100px]">
+        <% gameState.players.forEach(player => { %>
+          <div class="player">
+            <h4><%= player.username %> (<%= player.color %>)</h4>
+            <div class="hand">
+              <% player.cards.forEach(card => { %>
+                <div class="card value-<%= card.value %>">
+                  <span><%= card.value %></span>
+                </div>
+              <% }); %>
             </div>
-            <div
-              id="player-area"
-              class="w-[100%] flex flex-row justify-around"
-            ></div>
           </div>
-        </section>
-
-        <%- include('./templates') %>
-        <script src="/js/main.js"></script>
-        <div class="basis-2/6"><%- include('../partials/chat') %></div>
-        <script src="/js/games.js"></script>
+        <% }); %>
       </div>
-    </div>
-  </body>
+      <div id="playing-table">
+        <div class="w-[60%] flex flex-row justify-between mx-auto">
+          <div class="card back" id="draw-pile" data-game-id="<%= gameId %>"></div>
+          <div class="card blank" id="play-pile-n"></div>
+          <div class="card blank" id="play-pile-w"></div>
+          <div class="card blank" id="play-pile-e"></div>
+          <div class="card blank" id="play-pile-s"></div>
+        </div>
+        <div id="player-area" class="w-[100%] flex flex-row justify-around">
+          <div class="player">
+            <h4>Your Hand</h4>
+            <div class="hand">
+              <% gameState.player.cards.forEach(card => { %>
+                <div class="card value-<%= card.value %>" data-card-value="<%= card.value %>">
+                  <span><%= card.value %></span>
+                </div>
+              <% }); %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <%- include('./templates') %>
+    <script src="/js/main.js"></script>
+    <div class="basis-2/6"><%- include('../partials/chat') %></div>
+    <script src="/js/games.js"></script>
+  </div>
+</div>
+</body>
 </html>
