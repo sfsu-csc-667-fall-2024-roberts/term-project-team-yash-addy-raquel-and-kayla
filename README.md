@@ -5,18 +5,22 @@
 
 - Yash Pachori
 - Raquel Lutges
-- Addhyan Kohli
 - Kayla Young
-   Create the database:
-   ```bash
-   createdb sequence_game
-   ```
 
- Run database migrations:
+## Running Sequence
+```cd ``` into the root project directory with 2 separate terminals, then 
+ ### Start the development server in one:
    ```bash
-   npm run db:migrate
-   ```
-
- Start the development server:
-   ```bash
+   cd server
+   npm i
    npm run start:dev
+```
+
+### Start the vite client in the other:
+   ```bash
+   cd client
+   npm i
+   npm run start:dev
+```
+
+### Open a browser to localhost:5173
