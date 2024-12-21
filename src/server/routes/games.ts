@@ -96,5 +96,41 @@ router.get('/create', authenticate, (req: Request, res: Response) => {
   res.render('games/create-game'); // Adjust path if needed
 });
 
+// GET /games/lobby/:id - Fetch game data for the lobby
+router.get('/lobby/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const gameId = req.params.id;
+    const gameState = await GameModel.getState(gameId);
+    res.render('games/lobby', { gameId, gameState });
+  } catch (err) {
+    next(err);
+  }
+});
 
+// GET /games/:id - Fetch game data for the game board
+router.get('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const gameId = req.params.id;
+    const gameState = await GameModel.getState(gameId);
+    res.render('games/game', { gameId, gameState });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /games/:id/win - Fetch game results for the winning page
+router.get('/:id/win', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const gameId = req.params.id;
+    const gameState = await GameModel.getState(gameId);
+    const winners = gameState.winner ? [gameState.winner] : []; // Adjust based on your logic
+    const gameStats = gameState.players.map(player => ({
+      player: player.username,
+      score: player.cards.length // Example scoring logic
+    }));
+    res.render('games/win', { winners, gameStats });
+  } catch (err) {
+    next(err);
+  }
+});
 export default router;

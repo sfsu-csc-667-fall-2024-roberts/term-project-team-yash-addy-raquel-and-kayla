@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <%- include ('../partials/head') %>
+  <body class="text-[12px]">
+    <div class="container mx-auto">
+      <%- include('../partials/menu') %>
+
+      <section class="mt-4">
+        <h2 class="text-2xl font-bold">Game Over!</h2>
+        <p class="text-lg">Winner(s): <%= winners.join(', ') %></p>
+        <p class="text-lg">Game Stats:</p>
+        <ul>
+          <% gameStats.forEach(stat => { %>
+            <li><%= stat.player %>: <%= stat.score %> points</li>
+          <% }); %>
+        </ul>
+        <a href="/" class="mt-4 inline-block bg-blue-500 text-white rounded px-4 py-2">Back to Lobby</a>
+      </section>
+    </div>
+  </body>
+</html>
