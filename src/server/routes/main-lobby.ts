@@ -1,30 +1,46 @@
 import express from "express";
-import { Games } from "../db";
+import { GameModel } from "../models/game";
 
 const router = express.Router();
 
-router.get("/", async (request, response) => {
-  const user = request.session.user;
+interface Game {
+  id: string;
+  players: number;
+  player_count: number;
+  [key: string]: any;
+}
 
-  // Handle guest users by redirecting to login
-  if (!user) {
-    response.redirect('/auth/login');
-    return;
+router.get("/", async (request, response, next) => {
+  try {
+    const user = request.session.user;
+
+    // Redirect guests to login
+    if (!user) {
+      return response.redirect("/auth/login");
+    }
+
+    // Fetch available games
+    const availableGames = await GameModel.availableGames();
+
+    // Fetch games the user has joined
+    const playerGames = await GameModel.playerGames(user.id.toString());
+
+    // Add currentPlayerIsMember flag to each game
+    const gamesWithMembershipFlag = availableGames.map((game: Game) => ({
+      ...game,
+      currentPlayerIsMember: Boolean(playerGames[game.id]),
+    }));
+
+    // Render main lobby
+    response.render("main-lobby", {
+      title: "Game Lobby",
+      user,
+      availableGames: gamesWithMembershipFlag,
+    });
+  } catch (error) {
+    console.error("Error fetching games:", error);
+    next(error); // Pass error to the global error handler
   }
-
-  const availableGames = await Games.availableGames();
-  const playerGames: Record<number, boolean> = await Games.playerGames(user.id);
-
-  // Add currentPlayerIsMember flag to each game
-  availableGames.forEach((game) => {
-    game.currentPlayerIsMember = playerGames[game.id] || false;
-  });
-
-  response.render("main-lobby", { 
-    title: "Game Lobby",
-    user,
-    availableGames
-  });
 });
 
 export default router;

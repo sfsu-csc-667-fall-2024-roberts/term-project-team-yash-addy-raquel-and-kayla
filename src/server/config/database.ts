@@ -25,7 +25,7 @@ const dbConfig = {
   port: parseInt(process.env.DB_PORT || '5432', 10),
   database: process.env.DB_NAME || 'sequence_game',
   user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD,
+  password: process.env.DB_PASSWORD || '',
   max: 30, // Maximum number of connection pool clients
   idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
 };

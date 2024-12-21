@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Game</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="bg-gray-800 text-white min-h-screen flex justify-center items-center">
+<div class="container max-w-md bg-gray-700 rounded-lg shadow-lg p-8">
+    <h1 class="text-2xl font-bold mb-4 text-center">Create a New Game</h1>
+    <form action="/games/create" method="POST" class="space-y-4">
+        <!-- Game Name -->
+        <div>
+            <label for="name" class="block font-medium mb-1">Game Name</label>
+            <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    class="w-full px-3 py-2 border border-gray-600 rounded bg-gray-800 text-white"
+                    placeholder="Enter game name"
+                    required
+            />
+        </div>
+
+        <!-- Max Players -->
+        <div>
+            <label for="maxPlayers" class="block font-medium mb-1">Max Players</label>
+            <input
+                    type="number"
+                    id="maxPlayers"
+                    name="maxPlayers"
+                    class="w-full px-3 py-2 border border-gray-600 rounded bg-gray-800 text-white"
+                    placeholder="Enter max players (e.g., 4)"
+                    min="2"
+                    max="10"
+                    required
+            />
+        </div>
+
+        <!-- Submit Button -->
+        <button
+                type="submit"
+                class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+            Create Game
+        </button>
+    </form>
+</div>
+</body>
+</html>

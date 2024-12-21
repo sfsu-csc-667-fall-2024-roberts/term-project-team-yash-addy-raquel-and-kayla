@@ -5,9 +5,15 @@ import session from 'express-session';
 
 declare module 'express-session' {
   export interface SessionData {
-    user: { [key: string]: any };
+    user: {
+      id: string; // Use string since IDs are usually UUIDs
+      username: string;
+      email: string;
+      gravatar: string;
+    };
   }
 }
+
 
 export interface User {
   id: string;
@@ -22,6 +28,7 @@ export interface UserCreateInput {
   username: string;
   email: string;
   password: string;
+  gravatar: string;
 }
 
 export interface UserLoginInput {
@@ -35,16 +42,15 @@ export class UserModel {
   /**
    * Create a new user
    */
-  static async create({ username, email, password }: UserCreateInput): Promise<User> {
+  static async create({ username, email, password, gravatar }: UserCreateInput): Promise<User> {
     const password_hash = await bcrypt.hash(password, this.SALT_ROUNDS);
-    
     return db.one<User>(
-      `
-      INSERT INTO users (username, email, password_hash)
-      VALUES ($1, $2, $3)
-      RETURNING *
-      `,
-      [username, email, password_hash]
+        `
+    INSERT INTO users (username, email, password_hash, gravatar)
+    VALUES ($1, $2, $3, $4)
+    RETURNING id, username, email, gravatar
+    `,
+        [username, email, password_hash, gravatar]
     );
   }
 
@@ -66,7 +72,10 @@ export class UserModel {
    * Find a user by their email
    */
   static async findByEmail(email: string): Promise<User | null> {
-    return db.oneOrNone<User>('SELECT * FROM users WHERE email = $1', [email]);
+    return db.oneOrNone<User>(
+        'SELECT id, username, email, gravatar, password_hash FROM users WHERE email = $1',
+        [email]
+    );
   }
 
   /**
@@ -92,13 +101,13 @@ export class UserModel {
     const token = jwt.sign(
       { userId: user.id },
       process.env.JWT_SECRET!,
-      { expiresIn: process.env.JWT_EXPIRY }
+      { expiresIn: process.env.JWT_EXPIRY || "24" }
     );
 
     const refreshToken = jwt.sign(
       { userId: user.id, type: 'refresh' },
       process.env.JWT_SECRET!,
-      { expiresIn: process.env.JWT_REFRESH_EXPIRY }
+      { expiresIn: process.env.JWT_REFRESH_EXPIRY || "7d" }
     );
 
     const { password_hash, ...userWithoutPassword } = user;
@@ -130,7 +139,7 @@ export class UserModel {
       const token = jwt.sign(
         { userId: user.id },
         process.env.JWT_SECRET!,
-        { expiresIn: process.env.JWT_EXPIRY }
+        { expiresIn: process.env.JWT_EXPIRY || "24h"}
       );
 
       return { token };

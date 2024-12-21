@@ -28,95 +28,66 @@ router.get('/login', (_req: Request, res: Response) => {
 });
 
 // Register route
-router.post('/register', registerValidation, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/register', async (req, res) => {
+  const { username, email, password } = req.body;
+
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      if (req.headers.accept?.includes('application/json')) {
-        res.status(400).json({ errors: errors.array() });
-      } else {
-        res.render('auth/register', { 
-          title: 'Register',
-          error: errors.array()[0].msg,
-          values: req.body
-        });
-      }
-      return;
-    }
+    const gravatarUrl = `https://www.gravatar.com/avatar/${crypto
+        .createHash('md5')
+        .update(email.trim().toLowerCase())
+        .digest('hex')}?d=identicon`;
 
-    const { username, email, password } = req.body;
-    const user = await UserModel.create({ username, email, password });
-    const auth = await UserModel.authenticate({ email, password });
-    
-    if (!auth) {
-      const error = 'Authentication failed after registration';
-      if (req.headers.accept?.includes('application/json')) {
-        res.status(500).json({ error });
-      } else {
-        res.render('auth/register', { 
-          title: 'Register',
-          error,
-          values: req.body
-        });
-      }
-      return;
-    }
+    const user = await UserModel.create({
+      username,
+      email,
+      password,
+      gravatar: gravatarUrl,
+    });
 
-    if (req.headers.accept?.includes('application/json')) {
-      res.status(201).json({ token: auth.token, refreshToken: auth.refreshToken });
-    } else {
-      req.session.user = auth.user;
-      res.redirect('/');
-    }
-  } catch (err) {
-    next(err);
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      gravatar: user.gravatar,
+    };
+
+    res.redirect('/');
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).render('auth/register', { error: 'Internal Server Error' });
   }
 });
+
 
 // Login route
-router.post('/login', loginValidation, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      if (req.headers.accept?.includes('application/json')) {
-        res.status(400).json({ errors: errors.array() });
-      } else {
-        res.render('auth/login', { 
-          title: 'Login',
-          error: errors.array()[0].msg,
-          values: req.body
-        });
-      }
-      return;
+    const user = await UserModel.findByEmail(email);
+    if (!user) {
+      return res.status(401).render('auth/login', { error: 'Invalid credentials' });
     }
 
-    const { email, password } = req.body;
-    const auth = await UserModel.authenticate({ email, password });
-    
-    if (!auth) {
-      const error = 'Invalid credentials';
-      if (req.headers.accept?.includes('application/json')) {
-        res.status(401).json({ error });
-      } else {
-        res.render('auth/login', { 
-          title: 'Login',
-          error,
-          values: req.body
-        });
-      }
-      return;
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    if (!isPasswordValid) {
+      return res.status(401).render('auth/login', { error: 'Invalid credentials' });
     }
 
-    if (req.headers.accept?.includes('application/json')) {
-      res.json({ token: auth.token, refreshToken: auth.refreshToken });
-    } else {
-      req.session.user = auth.user;
-      res.redirect('/');
-    }
-  } catch (err) {
-    next(err);
+    // Ensure gravatar is included in the session
+    const { password_hash, ...userWithoutPassword } = user;
+    req.session.user = {
+      ...userWithoutPassword,
+      gravatar: user.gravatar || 'default_gravatar_url', // Use default if gravatar is missing
+    };
+
+    res.redirect('/');
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).render('auth/login', { error: 'Internal Server Error' });
   }
 });
+
 
 // Get current user route
 router.get('/me', authenticate, async (req: Request, res: Response) => {

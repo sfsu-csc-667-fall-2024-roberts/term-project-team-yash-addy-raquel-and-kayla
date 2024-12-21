@@ -10,6 +10,8 @@ import {
   DECK_CONFIG
 } from '../constants/gameConfig';
 
+
+
 export interface Card {
   suit: string;
   value: string;
@@ -32,6 +34,7 @@ export interface GameState {
     color: string;
   }>;
   deck: Card[];
+  player_count: number;
   status: 'waiting' | 'in_progress' | 'completed' | 'cancelled';
   winner?: string;
 }
@@ -47,6 +50,46 @@ export interface GameMove {
 
 export class GameModel {
   /**
+   * Fetch available games with `waiting` status
+   */
+  static async availableGames(): Promise<
+      Array<{ id: string; players: number; player_count: number }>
+  > {
+    return db.manyOrNone(
+        `
+    SELECT g.id, COUNT(gp.id) AS players, g.player_count
+    FROM games g
+    LEFT JOIN game_players gp ON g.id = gp.game_id
+    WHERE g.status = 'waiting'
+    GROUP BY g.id, g.player_count
+    ORDER BY g.created_at DESC
+    `
+    );
+  }
+
+  /**
+   * Fetch games joined by a specific user
+   */
+  static async playerGames(
+      userId: string
+  ): Promise<Record<string, boolean>> {
+    const games = await db.manyOrNone(
+        `
+    SELECT game_id
+    FROM game_players
+    WHERE user_id = $1
+    `,
+        [userId]
+    );
+
+    // Convert result to a map of game IDs for quick lookup
+    return games.reduce((acc: Record<string, boolean>, game) => {
+      acc[game.game_id] = true;
+      return acc;
+    }, {});
+  }
+
+  /**
    * Create a new game
    */
   static async create(creatorId: string): Promise<{ id: string; state: GameState }> {
@@ -59,44 +102,46 @@ export class GameModel {
         username: '', // Will be populated after creation
         cards: [],
         chips: [],
-        color: 'red'
+        color: 'red',
       }],
       deck: this.createDeck(),
-      status: 'waiting'
+      status: 'waiting',
+      player_count: 1, // Initialize with the creator as the first player
     };
 
     const game = await db.one<{ id: string; board_state: GameState }>(
-      `
-      INSERT INTO games (board_state, status)
-      VALUES ($1, $2)
-      RETURNING id, board_state
-      `,
-      [initialState, 'waiting']
+        `
+    INSERT INTO games (board_state, status)
+    VALUES ($1, $2)
+    RETURNING id, board_state
+    `,
+        [initialState, 'waiting']
     );
 
-    // Add creator as first player
+    // Add creator as the first player
     await db.none(
-      `
-      INSERT INTO game_players (game_id, user_id, player_index, cards)
-      VALUES ($1, $2, $3, $4)
-      `,
-      [game.id, creatorId, 0, []]
+        `
+    INSERT INTO game_players (game_id, user_id, player_index, cards)
+    VALUES ($1, $2, $3, $4)
+    `,
+        [game.id, creatorId, 0, []]
     );
 
     return { id: game.id, state: game.board_state };
   }
+
 
   /**
    * Join a game
    */
   static async join(gameId: string, userId: string): Promise<GameState> {
     const game = await db.one<{ board_state: GameState }>(
-      `
-      SELECT board_state
-      FROM games
-      WHERE id = $1 AND status = 'waiting'
-      `,
-      [gameId]
+        `
+    SELECT board_state
+    FROM games
+    WHERE id = $1 AND status = 'waiting'
+    `,
+        [gameId]
     );
 
     if (game.board_state.players.length >= MAX_PLAYERS) {
@@ -115,30 +160,34 @@ export class GameModel {
       username: '', // Will be populated after join
       cards: [],
       chips: [],
-      color: playerColor
+      color: playerColor,
     });
+
+    // Update player_count
+    game.board_state.player_count = game.board_state.players.length;
 
     // Add player to game
     await db.none(
-      `
-      INSERT INTO game_players (game_id, user_id, player_index, cards)
-      VALUES ($1, $2, $3, $4)
-      `,
-      [gameId, userId, playerIndex, []]
+        `
+    INSERT INTO game_players (game_id, user_id, player_index, cards)
+    VALUES ($1, $2, $3, $4)
+    `,
+        [gameId, userId, playerIndex, []]
     );
 
     // Update game state
     await db.none(
-      `
-      UPDATE games
-      SET board_state = $1
-      WHERE id = $2
-      `,
-      [game.board_state, gameId]
+        `
+    UPDATE games
+    SET board_state = $1
+    WHERE id = $2
+    `,
+        [game.board_state, gameId]
     );
 
     return game.board_state;
   }
+
 
   /**
    * Start a game
@@ -314,24 +363,25 @@ export class GameModel {
     createdAt: Date;
   }>> {
     const result = await db.query(`
-      SELECT g.id, 
-             COUNT(gp.id) as player_count, 
-             g.status, 
-             g.created_at
-      FROM games g
-      LEFT JOIN game_players gp ON g.id = gp.game_id
-      WHERE g.status = 'waiting'
-      GROUP BY g.id
-      ORDER BY g.created_at DESC
-    `);
+    SELECT g.id, 
+           COUNT(gp.id) as player_count, 
+           g.status, 
+           g.created_at
+    FROM games g
+    LEFT JOIN game_players gp ON g.id = gp.game_id
+    WHERE g.status = 'waiting'
+    GROUP BY g.id
+    ORDER BY g.created_at DESC
+  `);
 
-    return result.rows.map((row: { id: any; player_count: string; status: any; created_at: any; }) => ({
+    return result.rows.map((row: { id: string; player_count: string; status: string; created_at: Date }) => ({
       id: row.id,
-      playerCount: parseInt(row.player_count),
+      playerCount: parseInt(row.player_count, 10),
       status: row.status,
-      createdAt: row.created_at
+      createdAt: row.created_at,
     }));
   }
+
 
   // Helper methods
 

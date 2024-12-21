@@ -1,7 +1,9 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { check, validationResult } from 'express-validator';
+import { body, check, validationResult } from 'express-validator';
 import { GameModel } from '../models/game';
 import { authenticate } from '../middleware/auth';
+import { io } from "../index";
+
 
 const router = Router();
 
@@ -16,7 +18,17 @@ const gameValidation = [
 // Create a new game
 router.post('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Create a new game using the GameModel
     const game = await GameModel.create(req.user!.id);
+
+    // Emit a "game-created" event to all connected clients
+    io.emit('game-created', {
+      id: game.id,
+      players: 1,
+      player_count: game.state.player_count,
+    });
+
+    // Respond with the created game details
     res.status(201).json(game);
   } catch (err) {
     next(err);
@@ -78,5 +90,11 @@ router.get('/', authenticate, async (req: Request, res: Response, next: NextFunc
     next(err);
   }
 });
+
+// get create game page
+router.get('/create', authenticate, (req: Request, res: Response) => {
+  res.render('games/create-game'); // Adjust path if needed
+});
+
 
 export default router;
