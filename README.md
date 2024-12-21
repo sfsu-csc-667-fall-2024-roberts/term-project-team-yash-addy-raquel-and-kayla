@@ -7,3 +7,16 @@
 - Raquel Lutges
 - Addhyan Kohli
 - Kayla Young
+   Create the database:
+   ```bash
+   createdb sequence_game
+   ```
+
+ Run database migrations:
+   ```bash
+   npm run db:migrate
+   ```
+
+ Start the development server:
+   ```bash
+   npm run start:dev
